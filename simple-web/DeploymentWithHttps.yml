@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-python-service
+  annotations: 
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-east-1:214915749479:certificate/fae9e217-15aa-49ba-8dcf-1e294e03fb0e"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout: "60"
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: appport
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: appport
+    protocol: TCP
+  selector:
+    app: hello-python
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-python
+spec:
+  selector:
+    matchLabels:
+      app: hello-python
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: hello-python
+    spec:
+      containers:
+      - name: hello-python
+        image: yeasy/simple-web:latest
+        imagePullPolicy: Always
+        ports:
+        - name: appport
+          containerPort: 80
+
